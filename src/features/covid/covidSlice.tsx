@@ -7,7 +7,7 @@ type dailyData = typeof data
 
 const ApiURL = "https://api.covid19api.com/total/country/"
 
-type CovidState = {
+export type CovidState = {
   dailyData:dailyData
   selectedCountry: string
 }
@@ -34,32 +34,35 @@ const initialState:CovidState =
 
 export const fetchData = createAsyncThunk(
   "get_data",
-  async(country)=>{
-    const { data } =  await axios.get<dailyData>(ApiURL + country)
-    return {data:data, country: country}
+  async(selectedCountry:string) => {
+
+    let dynamicUri = ApiURL
+    if(selectedCountry){
+      dynamicUri = `${ApiURL}${selectedCountry}`
+    };
+    const { data } =  await axios.get<dailyData>(dynamicUri)
+    
+    return {data:data, selectedCountry: selectedCountry}
   }
 )
 
-
-
 export const covidSlice = createSlice({
-  name: 'covidr',
+  name: 'covid',
   initialState,
   reducers: {},
   extraReducers:  (builder) => {
-
     builder.addCase(fetchData.fulfilled, (state,action) => {
       return {
         ...state,
-        data: action.payload.data,
-        country: action.payload.country
+        dailyData: action.payload.data,
+        selectedCountry: action.payload.selectedCountry
       };
     })
-  },
+  }
 });
 
 export const selectData = (state:RootState) =>state.covid.dailyData
-export const selecCountry = (state:RootState) =>state.covid.selectedCountry
+export const selectCountry = (state:RootState) =>state.covid.selectedCountry
 
 export default covidSlice.reducer
 
